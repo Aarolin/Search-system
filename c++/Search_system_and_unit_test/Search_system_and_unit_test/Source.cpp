@@ -245,6 +245,29 @@ private:
     }
 };
 
+template<typename ContainerType>
+ostream& PrintContainer(ostream& os, ContainerType& container) {
+    bool isFirstElement = true;
+    for (const auto& element : container) {
+        if (isFirstElement) {
+            os << element;
+            isFirstElement = false;
+            continue;
+        }
+        os << ", "s << element;
+    }
+    return os;
+}
+
+template<typename T>
+ostream& operator<<(ostream& os, const vector<T>& container) {
+
+    os << "["s;
+    PrintContainer(os, container);
+    os << "]"s;
+    return os;
+}
+
 /*
    Подставьте сюда вашу реализацию макросов
    ASSERT, ASSERT_EQUAL, ASSERT_EQUAL_HINT, ASSERT_HINT и RUN_TEST
@@ -310,7 +333,7 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
         SearchServer server;
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
         const auto found_docs = server.FindTopDocuments("in"s);
-        ASSERT_EQUAL(found_docs.size(), 1);
+        ASSERT_EQUAL(found_docs.size(), 1u);
         const Document& doc0 = found_docs[0];
         ASSERT_EQUAL(doc0.id, doc_id);
     }
@@ -356,7 +379,7 @@ void TestSupportStopWords() {
     server.AddDocument(doc2_id, doc2_content, DocumentStatus::ACTUAL, ratings);
     {
         const auto finded_docs = server.FindTopDocuments("black and white"s);
-        ASSERT_EQUAL(finded_docs.size(), 1);
+        ASSERT_EQUAL(finded_docs.size(), 1u);
         ASSERT_EQUAL(finded_docs.at(0).id, doc1_id);
     }
 
@@ -375,7 +398,7 @@ void TestSupportMinusWords() {
     search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, { 9 });
     {
         const auto docs = search_server.FindTopDocuments("пушистый ухоженный кот"s);
-        ASSERT_EQUAL(docs.size(), 3);
+        ASSERT_EQUAL(docs.size(), 3u);
         ASSERT_EQUAL(docs.at(0).id, 1);
         ASSERT_EQUAL(docs.at(1).id, 0);
         ASSERT_EQUAL(docs.at(2).id, 2);
@@ -383,7 +406,7 @@ void TestSupportMinusWords() {
 
     {
         const auto docs = search_server.FindTopDocuments("-пушистый -ухоженный кот"s);
-        ASSERT_EQUAL(docs.size(), 1);
+        ASSERT_EQUAL(docs.size(), 1u);
         ASSERT_EQUAL(docs.at(0).id, 0);
     }
 
@@ -407,24 +430,25 @@ void TestMatchingDocuments() {
     search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, { 9 });
 
     {
-        const auto matching = search_server.MatchDocument("белый кот", 0);
-        ASSERT_EQUAL(get<0>(matching).size(), 2);
-        ASSERT_EQUAL(get<0>(matching)[0], "белый"s);
-        ASSERT_EQUAL(get<0>(matching)[1], "кот"s);
-        ASSERT(get<1>(matching) == DocumentStatus::ACTUAL);
+        const auto [plus_words, doc_status] = search_server.MatchDocument("белый кот", 0);
+
+        ASSERT_EQUAL(plus_words.size(), 2u);
+        const vector<string> expected_words = { "белый", "кот" };
+        ASSERT_EQUAL(plus_words, expected_words);
+        ASSERT(doc_status == DocumentStatus::ACTUAL);
     }
 
     {
-        const auto matching = search_server.MatchDocument("белый кот и", 0);
-        ASSERT_EQUAL(get<0>(matching).size(), 2);
-        ASSERT_EQUAL(get<0>(matching)[0], "белый"s);
-        ASSERT_EQUAL(get<0>(matching)[1], "кот"s);
-        ASSERT(get<1>(matching) == DocumentStatus::ACTUAL);
+        const auto [plus_words, doc_status] = search_server.MatchDocument("белый кот и", 0);
+        ASSERT_EQUAL(plus_words.size(), 2u);
+        const vector<string> expected_words = { "белый", "кот" };
+        ASSERT_EQUAL(plus_words, expected_words);
+        ASSERT(doc_status == DocumentStatus::ACTUAL);
     }
 
     {
-        const auto matching = search_server.MatchDocument("белый -кот и", 0);
-        ASSERT(get<0>(matching).empty());
+        const auto [plus_words, doc_status] = search_server.MatchDocument("белый -кот и", 0);
+        ASSERT(plus_words.empty());
     }
 }
 
@@ -436,7 +460,7 @@ void TestSortFindedDocuments() {
     search_server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, { 5, -12, 2, 1 });
     search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, { 9 });
     const auto docs = search_server.FindTopDocuments("пушистый ухоженный кот"s);
-    ASSERT_EQUAL(docs.size(), 3);
+    ASSERT_EQUAL(docs.size(), 3u);
     ASSERT_EQUAL(docs.at(0).id, 1);
     ASSERT_EQUAL(docs.at(1).id, 0);
     ASSERT_EQUAL(docs.at(2).id, 2);
@@ -450,23 +474,26 @@ void TestAverageRating() {
         SearchServer search_server;
         search_server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
         const auto docs = search_server.FindTopDocuments("пушисый ухоженный кот"s);
-        ASSERT_EQUAL(docs.size(), 1);
-        ASSERT_EQUAL(docs.at(0).rating, 2);
+        ASSERT_EQUAL(docs.size(), 1u);
+        const int expected_rating = (8 + (-3)) / 2;
+        ASSERT_EQUAL(docs.at(0).rating, expected_rating);
     }
 
     {
         SearchServer search_server;
         search_server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { -3, -3 });
         const auto docs = search_server.FindTopDocuments("пушистый ухоженный кот"s);
-        ASSERT_EQUAL(docs.size(), 1);
-        ASSERT_EQUAL(docs[0].rating, -3);
+        ASSERT_EQUAL(docs.size(), 1u);
+        const int expected_rating = ((-3) + (-3)) / 2;
+        ASSERT_EQUAL(docs[0].rating, expected_rating);
     }
     {
         SearchServer search_server;
         search_server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 0, 0, 0 });
         const auto docs = search_server.FindTopDocuments("пушистый ухоженный кот"s);
-        ASSERT_EQUAL(docs.size(), 1);
-        ASSERT_EQUAL(docs[0].rating, 0);
+        ASSERT_EQUAL(docs.size(), 1u);
+        const int expected_rating = (0 + 0 + 0) / 3;
+        ASSERT_EQUAL(docs[0].rating, expected_rating);
     }
 }
 
@@ -481,27 +508,34 @@ void TestFilterByPredicat() {
     search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, { 9 });
 
     {
-        const auto docs = search_server.FindTopDocuments("пушистый ухоженный кот"s, [](int document_id, DocumentStatus status, int rating) { return status == DocumentStatus::BANNED; });
-        ASSERT_EQUAL(docs.size(), 1);
+        const auto docs = search_server.FindTopDocuments("пушистый ухоженный кот"s, 
+            [](int document_id, DocumentStatus status, int rating) { return status == DocumentStatus::BANNED; });
+
+        ASSERT_EQUAL(docs.size(), 1u);
         ASSERT_EQUAL(docs.at(0).id, 3);
     }
 
     {
-        const auto docs = search_server.FindTopDocuments("пушистый ухоженный кот"s, [](int document_id, DocumentStatus status, int rating) { return  rating > 4; });
-        ASSERT_EQUAL(docs.size(), 2);
+        const auto docs = search_server.FindTopDocuments("пушистый ухоженный кот"s, 
+            [](int document_id, DocumentStatus status, int rating) { return  rating > 4; });
+
+        ASSERT_EQUAL(docs.size(), 2u);
         ASSERT_EQUAL(docs.at(0).id, 1);
         ASSERT_EQUAL(docs.at(1).id, 3);
     }
 
     {
-        const auto docs = search_server.FindTopDocuments("пушистый ухоженный кот"s, [](int document_id, DocumentStatus status, int rating) { return document_id < 1; });
-        ASSERT_EQUAL(docs.size(), 1);
+        const auto docs = search_server.FindTopDocuments("пушистый ухоженный кот"s, 
+            [](int document_id, DocumentStatus status, int rating) { return document_id < 1; });
+
+        ASSERT_EQUAL(docs.size(), 1u);
         ASSERT_EQUAL(docs.at(0).id, 0);
     }
 
 }
 
 void TestFindDocumentsByStatus() {
+
     SearchServer search_server;
 
     search_server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, { 8, -3 });
@@ -509,7 +543,7 @@ void TestFindDocumentsByStatus() {
 
     {
         const auto docs = search_server.FindTopDocuments("ухоженный белый"s, DocumentStatus::ACTUAL);
-        ASSERT_EQUAL(docs.size(), 1);
+        ASSERT_EQUAL(docs.size(), 1u);
         ASSERT_EQUAL(docs.at(0).id, 0);
     }
 
@@ -530,10 +564,14 @@ void TestCorrectRelevance() {
     search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, { 9 });
 
     const auto docs = search_server.FindTopDocuments("пушистый ухоженный кот"s);
-    ASSERT_EQUAL(docs.size(), 3);
-    ASSERT((docs[0].relevance - 0.866434) < 1e-6);
-    ASSERT((docs[1].relevance - 0.173287) < 1e-6);
-    ASSERT((docs[2].relevance - 0.173287) < 1e-6);
+    const double tf_idf_doc0 = (1.0 / 4.0) * log(4.0 / 2.0);
+    const double tf_idf_doc1 = ((2.0 / 4.0) * log(4.0 / 1.0)) + ((1.0 / 4.0) * log(4.0 / 2.0));
+    const double tf_idf_doc2 = (2.0 / 4.0) * log(4.0 / 2.0);
+    const double epsilon = 1e-6;
+    ASSERT_EQUAL(docs.size(), 3u);
+    ASSERT((docs.at(0).relevance - tf_idf_doc1) < epsilon);
+    ASSERT((docs.at(1).relevance - tf_idf_doc0) < epsilon);
+    ASSERT((docs.at(2).relevance - tf_idf_doc2) < epsilon);
 }
 
 
