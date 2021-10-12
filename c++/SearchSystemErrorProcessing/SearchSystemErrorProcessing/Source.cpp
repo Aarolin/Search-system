@@ -1,4 +1,4 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <vector>
 #include <stdexcept>
 #include <string>
@@ -239,7 +239,7 @@ private:
             text = text.substr(1);
         }
         if (text.empty() || text[0] == '-' || !IsValidWord(text)) {
-            throw invalid_argument("Word has two or more minuses"s);
+            throw invalid_argument("Word has two or more minuses or missing text after minus"s);
         }
 
         return QueryWord{ text, is_minus, IsStopWord(text) };
@@ -309,7 +309,7 @@ private:
 
 };
 
-// ------------ Пример использования ----------------
+// ------------ РџСЂРёРјРµСЂ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ ----------------
 
 void PrintDocument(const Document& document) {
     cout << "{ "s
@@ -335,25 +335,25 @@ void AddDocument(SearchServer& search_server, int document_id, const string& doc
         search_server.AddDocument(document_id, document, status, ratings);
     }
     catch (const exception& e) {
-        cout << "Ошибка добавления документа "s << document_id << ": "s << e.what() << endl;
+        cout << "РћС€РёР±РєР° РґРѕР±Р°РІР»РµРЅРёСЏ РґРѕРєСѓРјРµРЅС‚Р° "s << document_id << ": "s << e.what() << endl;
     }
 }
 
 void FindTopDocuments(const SearchServer& search_server, const string& raw_query) {
-    cout << "Результаты поиска по запросу: "s << raw_query << endl;
+    cout << "Р РµР·СѓР»СЊС‚Р°С‚С‹ РїРѕРёСЃРєР° РїРѕ Р·Р°РїСЂРѕСЃСѓ: "s << raw_query << endl;
     try {
         for (const Document& document : search_server.FindTopDocuments(raw_query)) {
             PrintDocument(document);
         }
     }
     catch (const exception& e) {
-        cout << "Ошибка поиска: "s << e.what() << endl;
+        cout << "РћС€РёР±РєР° РїРѕРёСЃРєР°: "s << e.what() << endl;
     }
 }
 
 void MatchDocuments(const SearchServer& search_server, const string& query) {
     try {
-        cout << "Матчинг документов по запросу: "s << query << endl;
+        cout << "РњР°С‚С‡РёРЅРі РґРѕРєСѓРјРµРЅС‚РѕРІ РїРѕ Р·Р°РїСЂРѕСЃСѓ: "s << query << endl;
         const int document_count = search_server.GetDocumentCount();
         for (int index = 0; index < document_count; ++index) {
             const int document_id = search_server.GetDocumentId(index);
@@ -362,25 +362,25 @@ void MatchDocuments(const SearchServer& search_server, const string& query) {
         }
     }
     catch (const exception& e) {
-        cout << "Ошибка матчинга документов на запрос "s << query << ": "s << e.what() << endl;
+        cout << "РћС€РёР±РєР° РјР°С‚С‡РёРЅРіР° РґРѕРєСѓРјРµРЅС‚РѕРІ РЅР° Р·Р°РїСЂРѕСЃ "s << query << ": "s << e.what() << endl;
     }
 }
 
 int main() {
-    SearchServer search_server("и в на"s);
+    SearchServer search_server("Рё РІ РЅР°"s);
 
-    AddDocument(search_server, 1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
-    AddDocument(search_server, 1, "пушистый пёс и модный ошейник"s, DocumentStatus::ACTUAL, { 1, 2 });
-    AddDocument(search_server, -1, "пушистый пёс и модный ошейник"s, DocumentStatus::ACTUAL, { 1, 2 });
-    AddDocument(search_server, 3, "большой пёс скво\x12рец евгений"s, DocumentStatus::ACTUAL, { 1, 3, 2 });
-    AddDocument(search_server, 4, "большой пёс скворец евгений"s, DocumentStatus::ACTUAL, { 1, 1, 1 });
+    AddDocument(search_server, 1, "РїСѓС€РёСЃС‚С‹Р№ РєРѕС‚ РїСѓС€РёСЃС‚С‹Р№ С…РІРѕСЃС‚"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
+    AddDocument(search_server, 1, "РїСѓС€РёСЃС‚С‹Р№ РїС‘СЃ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::ACTUAL, { 1, 2 });
+    AddDocument(search_server, -1, "РїСѓС€РёСЃС‚С‹Р№ РїС‘СЃ Рё РјРѕРґРЅС‹Р№ РѕС€РµР№РЅРёРє"s, DocumentStatus::ACTUAL, { 1, 2 });
+    AddDocument(search_server, 3, "Р±РѕР»СЊС€РѕР№ РїС‘СЃ СЃРєРІРѕ\x12СЂРµС† РµРІРіРµРЅРёР№"s, DocumentStatus::ACTUAL, { 1, 3, 2 });
+    AddDocument(search_server, 4, "Р±РѕР»СЊС€РѕР№ РїС‘СЃ СЃРєРІРѕСЂРµС† РµРІРіРµРЅРёР№"s, DocumentStatus::ACTUAL, { 1, 1, 1 });
 
-    FindTopDocuments(search_server, "пушистый -пёс"s);
-    FindTopDocuments(search_server, "пушистый --кот"s);
-    FindTopDocuments(search_server, "пушистый -"s);
+    FindTopDocuments(search_server, "РїСѓС€РёСЃС‚С‹Р№ -РїС‘СЃ"s);
+    FindTopDocuments(search_server, "РїСѓС€РёСЃС‚С‹Р№ --РєРѕС‚"s);
+    FindTopDocuments(search_server, "РїСѓС€РёСЃС‚С‹Р№ -"s);
 
-    MatchDocuments(search_server, "пушистый пёс"s);
-    MatchDocuments(search_server, "модный -кот"s);
-    MatchDocuments(search_server, "модный --пёс"s);
-    MatchDocuments(search_server, "пушистый - хвост"s);
+    MatchDocuments(search_server, "РїСѓС€РёСЃС‚С‹Р№ РїС‘СЃ"s);
+    MatchDocuments(search_server, "РјРѕРґРЅС‹Р№ -РєРѕС‚"s);
+    MatchDocuments(search_server, "РјРѕРґРЅС‹Р№ --РїС‘СЃ"s);
+    MatchDocuments(search_server, "РїСѓС€РёСЃС‚С‹Р№ - С…РІРѕСЃС‚"s);
 }
