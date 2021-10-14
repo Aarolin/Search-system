@@ -83,11 +83,14 @@ class SearchServer {
 public:
     template <typename StringContainer>
     explicit SearchServer(const StringContainer& stop_words) : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
-        for (const string& word : stop_words_) {
-            if (!IsValidWord(word)) {
-                throw invalid_argument("Your stop-words list contains invalid characters"s);
-            }
+        bool throw_except = any_of(stop_words_.begin(), stop_words_.end(), [](const string& word) {
+            return !IsValidWord(word);
+            });
+        if (throw_except) {
+            throw invalid_argument("your stop-words list contains invalid characters"s);
         }
+
+
     }
 
     explicit SearchServer(const string& stop_words_text) : SearchServer(SplitIntoWords(stop_words_text)) {
@@ -97,7 +100,7 @@ public:
     void AddDocument(int document_id, const string& document, DocumentStatus status, const vector<int>& ratings) {
 
         if ((document_id < 0) || (documents_.count(document_id) > 0)) {
-            throw invalid_argument("You are trying to add document whose ID already exist or document_id is invalid");
+            throw invalid_argument("You are trying to add document whose ID already exist or document_id is invalid"s);
         }
         const vector<string> words = SplitIntoWordsNoStop(document);
         const double inv_word_count = 1.0 / words.size();
