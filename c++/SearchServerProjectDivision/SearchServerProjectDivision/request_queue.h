@@ -1,12 +1,13 @@
 #pragma once
 #include "search_server.h"
+
 #include <deque>
+
 class RequestQueue {
 public:
     explicit RequestQueue(const SearchServer& search_server);
     template <typename DocumentPredicate>
     std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentPredicate document_predicate);
-
     std::vector<Document> AddFindRequest(const std::string& raw_query, DocumentStatus status);
     std::vector<Document> AddFindRequest(const std::string& raw_query);
     int GetNoResultRequests() const;
@@ -35,7 +36,7 @@ std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query,
 
     }
     catch (const invalid_argument& error) {
-        cout << "Ошибка поиска: "s << error.what() << endl;
+        cout << "Search error: "s << error.what() << endl;
         QueryResult query_result = { raw_query, 0 };
         AddRequestInDeque(query_result);
         return { {} };

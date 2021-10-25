@@ -2,6 +2,7 @@
 #include "read_input_functions.h"
 #include "string_processing.h"
 #include "document.h"
+
 #include <map>
 #include <tuple>
 #include <stdexcept>
@@ -23,6 +24,7 @@ public:
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentPredicate document_predicate) const;
     std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus status) const;
     std::vector<Document> FindTopDocuments(const std::string& raw_query) const;
+
     int GetDocumentCount() const;
     int GetDocumentId(int index) const;
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
