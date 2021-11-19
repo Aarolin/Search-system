@@ -1,13 +1,14 @@
 #pragma once
+
+#include "document.h"
 #include "read_input_functions.h"
 #include "string_processing.h"
-#include "document.h"
 
-#include <map>
-#include <tuple>
-#include <stdexcept>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <map>
+#include <stdexcept>
+#include <tuple>
 #include <utility>
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
@@ -27,14 +28,14 @@ public:
 
     int GetDocumentCount() const;
 
-    std::vector<int>::iterator begin();
-    std::vector<int>::iterator end();
+    std::set<int>::iterator begin();
+    std::set<int>::iterator end();
 
-    const std::map<std::string, double> GetWordFrequencies(int document_id) const;
+    const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
     void RemoveDocument(int document_id);
 
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query, int document_id) const;
-    std::map<int, std::set<std::string>> documents_to_words_;
+
 private:
     struct DocumentData {
         int rating;
@@ -43,8 +44,8 @@ private:
     const std::set<std::string> stop_words_;
     std::map<std::string, std::map<int, double>> word_to_document_freqs_;
     std::map<int, DocumentData> documents_;
-    std::vector<int> document_ids_;
-    //std::map<int, std::set<std::string>> documents_to_words_;
+    std::set<int> document_ids_;
+    std::map<int, std::map<std::string, double>> document_to_word_freqs_;
     bool IsStopWord(const std::string& word) const;
     static bool IsValidWord(const std::string& word);
     std::vector<std::string> SplitIntoWordsNoStop(const std::string& text) const;
@@ -131,5 +132,3 @@ std::vector<Document> SearchServer::FindAllDocuments(const Query& query, Documen
     }
     return matched_documents;
 }
-
-

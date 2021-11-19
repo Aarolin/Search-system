@@ -4,17 +4,23 @@
 void RemoveDuplicates(SearchServer& search_server) {
 
     std::vector<int> documents_to_delete;
-    auto& documents_to_words = search_server.documents_to_words_;
+    std::set<std::set<std::string>> unic_words_controller;
 
-    for (auto search_iterator = documents_to_words.begin(); search_iterator != documents_to_words.end(); ) {
-        const auto& [doc_id, curr_words_set] = *search_iterator;
-        ++search_iterator;
-        for (auto bg = search_iterator; bg != documents_to_words.end(); ++bg) {
-            const auto& [pos_duplicate_doc_id, possible_duplicate_words_set] = *bg;
-            if (curr_words_set == possible_duplicate_words_set) {
-                documents_to_delete.push_back(pos_duplicate_doc_id);
-            }
+    for (const int document_id : search_server) {
+
+        std::map<std::string, double> word_freqs = search_server.GetWordFrequencies(document_id);
+        std::set<std::string> words;
+        for (const auto& [word, freq] : word_freqs) {
+            words.insert(word);
         }
+
+        if (unic_words_controller.count(words) > 0) {
+            documents_to_delete.push_back(document_id);
+            continue;
+        }
+
+        unic_words_controller.insert(words);
+
     }
 
     for (const int id_to_del : documents_to_delete) {
