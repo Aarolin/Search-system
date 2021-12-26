@@ -30,8 +30,8 @@ public:
     std::vector<Document> FindTopDocuments(ExecutionPolicy&& policy, const std::string_view& raw_query, DocumentPredicate document_predicate) const;
     template <typename DocumentPredicate>
     std::vector<Document> FindTopDocuments(const std::string_view& raw_query, DocumentPredicate document_predicate) const;
-    template <typename ExecutionPolicy>
 
+    template <typename ExecutionPolicy>
     std::vector<Document> FindTopDocuments(ExecutionPolicy&& policy, const std::string_view& raw_query, DocumentStatus status) const;
     std::vector<Document> FindTopDocuments(const std::string_view& raw_query, DocumentStatus status) const;
 
