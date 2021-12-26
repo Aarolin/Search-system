@@ -20,35 +20,38 @@ public:
         Value& ref_to_value;
     };
 
-    explicit ConcurrentMap(size_t bucket_count) : dictionaries_(bucket_count), mutex_vc_(bucket_count), dict_count_(bucket_count) {
+    explicit ConcurrentMap(size_t bucket_count) : dictionaries_(bucket_count) {
     }
 
     Access operator[](const Key& key) {
 
-        std::atomic<size_t> index = static_cast<uint64_t>(key) % dict_count_;
-        return { mutex_vc_[index * 1], dictionaries_[index * 1], key };
+        std::atomic<size_t> index = static_cast<uint64_t>(key) % dictionaries_.size();
+        return { dictionaries_[index].dict_mutex, dictionaries_[index].dictionary, key };
 
     }
 
     std::map<Key, Value> BuildOrdinaryMap() {
         std::map<Key, Value> result;
-        int i = -1;
-        for (const auto& dict : dictionaries_) {
-            std::lock_guard guard_dict(mutex_vc_[++i]);
-            for (const auto& [key, value] : dict) {
+        for (auto& bucket : dictionaries_) {
+            std::lock_guard guard_dict(bucket.dict_mutex);
+            for (const auto& [key, value] : bucket.dictionary) {
                 result[key] = value;
             }
         }
         return result;
     }
     void erase(const Key& key) {
-        std::atomic<size_t> index = static_cast<uint64_t>(key) % dict_count_;
-        dictionaries_[index * 1].erase(key);
+        std::atomic<size_t> index = static_cast<uint64_t>(key) % dictionaries_.size();
+        dictionaries_[index].dictionary.erase(key);
     }
 
 private:
 
-    std::vector<std::map<Key, Value>> dictionaries_;
-    std::vector<std::mutex> mutex_vc_;
-    size_t dict_count_;
+    struct Bucket {
+        std::map<Key, Value> dictionary;
+        std::mutex dict_mutex;
+    };
+
+    std::vector<Bucket> dictionaries_;
+
 };

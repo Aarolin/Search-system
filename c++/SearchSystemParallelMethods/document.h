@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-using namespace std::literals;
 
 struct Document {
     Document() = default;

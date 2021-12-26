@@ -19,7 +19,7 @@ void SearchServer::AddDocument(int document_id, const std::string_view& document
     for (const std::string& word : words) {
         words_to_server_.insert(word);
         word_to_document_freqs_[word][document_id] += inv_word_count;
-        document_to_word_freqs_[document_id][*words_to_server_.find(word)] += inv_word_count;
+        document_to_word_freqs_[document_id][word] += inv_word_count;
     }
     documents_.emplace(document_id, DocumentData{ ComputeAverageRating(ratings), status });
     document_ids_.insert(document_id);

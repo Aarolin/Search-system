@@ -4,8 +4,6 @@
 
 #include <deque>
 
-using namespace std::literals;
-
 class RequestQueue {
 public:
     explicit RequestQueue(const SearchServer& search_server);
