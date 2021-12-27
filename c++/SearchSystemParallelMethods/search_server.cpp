@@ -1,6 +1,6 @@
 #include "search_server.h"
 
-SearchServer::SearchServer(const std::string_view& stop_words_text) : SearchServer(SplitIntoWords(stop_words_text)) {
+SearchServer::SearchServer(std::string_view stop_words_text) : SearchServer(SplitIntoWords(stop_words_text)) {
 
 }
 
@@ -8,7 +8,7 @@ SearchServer::SearchServer(const std::string& stop_words_text) : SearchServer(Sp
 
 }
 
-void SearchServer::AddDocument(int document_id, const std::string_view& document, DocumentStatus status, const std::vector<int>& ratings) {
+void SearchServer::AddDocument(int document_id, std::string_view document, DocumentStatus status, const std::vector<int>& ratings) {
 
     if ((document_id < 0) || (documents_.count(document_id) > 0)) {
         throw std::invalid_argument("Invalid document_id");
@@ -26,11 +26,11 @@ void SearchServer::AddDocument(int document_id, const std::string_view& document
 }
 
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw_query, DocumentStatus status) const {
+std::vector<Document> SearchServer::FindTopDocuments(std::string_view raw_query, DocumentStatus status) const {
     return SearchServer::FindTopDocuments(std::execution::seq, raw_query, status);
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::string_view& raw_query) const {
+std::vector<Document> SearchServer::FindTopDocuments(std::string_view raw_query) const {
     return SearchServer::FindTopDocuments(std::execution::seq, raw_query);
 }
 
@@ -58,7 +58,7 @@ void SearchServer::RemoveDocument(int document_id) {
     SearchServer::RemoveDocument(std::execution::seq, document_id);
 }
 
-std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDocument(const std::string_view& raw_query, int document_id) const {
+std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDocument(std::string_view raw_query, int document_id) const {
     return SearchServer::MatchDocument(std::execution::seq, raw_query, document_id);
 }
 
@@ -72,7 +72,7 @@ bool SearchServer::IsValidWord(const std::string& word) {
         });
 }
 
-std::vector<std::string> SearchServer::SplitIntoWordsNoStop(const std::string_view& text) const {
+std::vector<std::string> SearchServer::SplitIntoWordsNoStop(std::string_view text) const {
     std::vector<std::string> words;
     for (const std::string& word : SplitIntoWords(text)) {
         if (!IsValidWord(word)) {
@@ -114,7 +114,7 @@ SearchServer::QueryWord SearchServer::ParseQueryWord(const std::string& text) co
     return { word, is_minus, IsStopWord(word) };
 }
 
-SearchServer::Query SearchServer::ParseQuery(const std::string_view& text) const {
+SearchServer::Query SearchServer::ParseQuery(std::string_view text) const {
     Query result;
     for (const std::string& word : SplitIntoWords(text)) {
         const auto query_word = ParseQueryWord(word);
